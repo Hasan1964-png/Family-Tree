@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            direction: ltr;
+        }
+        [lang="ar"] {
+            direction: rtl;
+            font-family: 'Amiri', serif;
+        }
+        .controls {
+            margin: 20px;
+        }
+        .tree {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .level {
+            display: flex;
+            gap: 20px;
+        }
+        .member {
+            border: 1px solid #ccc;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+            box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.1);
+        }
+        .member img {
+            max-width: 100px;
+            border-radius: 50%;
+        }
+        .search-bar {
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1 id="title">Family Tree</h1>
+
+    <!-- Language Selector -->
+    <div class="controls">
+        <button onclick="changeLanguage('en')">English</button>
+        <button onclick="changeLanguage('ar')">العربية</button>
+    </div>
+
+    <!-- Search Functionality -->
+    <div class="search-bar">
+        <input type="text" id="search" placeholder="Search family members" oninput="searchMember()" />
+    </div>
+
+    <!-- Family Tree -->
+    <div class="tree" id="tree">
+        <div class="level">
+            <div class="member" data-name="John Doe">
+                <img src="husband.jpg" alt="Husband">
+                <p class="name"><strong>John Doe</strong></p>
+                <p>Husband</p>
+            </div>
+            <div class="member" data-name="Jane Doe">
+                <img src="wife.jpg" alt="Wife">
+                <p class="name"><strong>Jane Doe</strong></p>
+                <p>Wife</p>
+            </div>
+        </div>
+        <div class="level">
+            <div class="member" data-name="Child 1">
+                <img src="child1.jpg" alt="Child 1">
+                <p class="name"><strong>Child 1</strong></p>
+                <p>Son</p>
+            </div>
+            <div class="member" data-name="Child 2">
+                <img src="child2.jpg" alt="Child 2">
+                <p class="name"><strong>Child 2</strong></p>
+                <p>Daughter</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Member Form -->
+    <div>
+        <h3 id="addMemberTitle">Add New Member</h3>
+        <form id="addMemberForm" onsubmit="addMember(event)">
+            <input type="text" id="newName" placeholder="Name" required>
+            <input type="file" id="newImage" accept="image/*" required>
+            <button type="submit">Add Member</button>
+        </form>
+    </div>
+
+    <!-- Export Button -->
+    <div>
+        <button onclick="exportToPDF()">Export as PDF</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        const languageStrings = {
+            en: {
+                title: "Family Tree",
+                addMemberTitle: "Add New Member",
+                searchPlaceholder: "Search family members",
+            },
+            ar: {
+                title: "شجرة العائلة",
+                addMemberTitle: "إضافة فرد جديد",
+                searchPlaceholder: "ابحث عن أفراد العائلة",
+            },
+        };
+
+        // Change Language Functionality
+        function changeLanguage(lang) {
+            document.body.lang = lang;
+            document.getElementById("title").textContent = languageStrings[lang].title;
+            document.getElementById("addMemberTitle").textContent = languageStrings[lang].addMemberTitle;
+            document.getElementById("search").placeholder = languageStrings[lang].searchPlaceholder;
+        }
+
+        // Search Functionality
+        function searchMember() {
+            const query = document.getElementById("search").value.toLowerCase();
+            const members = document.querySelectorAll(".member");
+            members.forEach(member => {
+                const name = member.querySelector(".name").textContent.toLowerCase();
+                member.style.display = name.includes(query) ? "block" : "none";
+            });
+        }
+
+        // Add New Member
+        function addMember(event) {
+            event.preventDefault();
+            const name = document.getElementById("newName").value;
+            const imageInput = document.getElementById("newImage");
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const newMember = document.createElement("div");
+                newMember.className = "member";
+                newMember.dataset.name = name;
+                newMember.innerHTML = `
+                    <img src="${e.target.result}" alt="${name}">
+                    <p class="name"><strong>${name}</strong></p>
+                `;
+                document.getElementById("tree").appendChild(newMember);
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            doc.text(document.getElementById("title").textContent, 10, 10);
+            const members = document.querySelectorAll(".member");
+            let y = 20;
+
+            members.forEach(member => {
+                const name = member.querySelector(".name").textContent;
+                doc.text(name, 10, y);
+                y += 10;
+            });
+
+            doc.save("family-tree.pdf");
+        }
+    </script>
+</body>
+</html>
